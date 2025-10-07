@@ -19,20 +19,20 @@ const KASSA_CONFIG = {
 
 console.log('🚀 Сервер запускается...');
 
-// Статические файлы из корня
-app.use(express.static(__dirname));
+// Статические файлы из папки public
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Явные роуты для всех страниц
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 app.get('/success', (req, res) => {
-    res.sendFile(path.join(__dirname, 'success.html'));
+    res.sendFile(path.join(__dirname, 'public', 'success.html'));
 });
 
 app.get('/fail', (req, res) => {
-    res.sendFile(path.join(__dirname, 'fail.html'));
+    res.sendFile(path.join(__dirname, 'public', 'fail.html'));
 });
 
 // API роуты
@@ -174,7 +174,7 @@ app.get('/health', (req, res) => {
 
 // Fallback
 app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 function getBaseUrl(req) {
