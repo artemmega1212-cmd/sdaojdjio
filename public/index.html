@@ -39,6 +39,16 @@
             margin-bottom: 10px;
         }
 
+        .demo-banner {
+            background: #ffeb3b;
+            color: #333;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            margin-bottom: 20px;
+            border-left: 4px solid #ffc107;
+        }
+
         .order-summary {
             background: #f8f9fa;
             padding: 20px;
@@ -193,6 +203,15 @@
             text-align: center;
         }
 
+        .info-message {
+            background: #3498db;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            text-align: center;
+        }
+
         @media (max-width: 600px) {
             .container {
                 padding: 20px;
@@ -210,6 +229,11 @@
             <h1>🛍️ Интернет-магазин</h1>
             <p>Безопасные платежи через Kassa.ai</p>
         </header>
+
+        <div class="demo-banner">
+            <strong>ДЕМО-РЕЖИМ</strong> - Приложение работает без реальных платежей. 
+            Можно настроить Kassa.ai используя этот домен.
+        </div>
 
         <div class="order-summary">
             <h2>Ваш заказ</h2>
@@ -246,12 +270,12 @@
 
                 <div class="form-group">
                     <label for="email">Email для уведомлений:</label>
-                    <input type="email" id="email" name="email" required placeholder="your@email.com">
+                    <input type="email" id="email" name="email" required placeholder="your@email.com" value="test@example.com">
                 </div>
 
                 <div class="form-group">
                     <label for="phone">Телефон:</label>
-                    <input type="tel" id="phone" name="phone" required placeholder="+7 (999) 999-99-99">
+                    <input type="tel" id="phone" name="phone" required placeholder="+7 (999) 999-99-99" value="+7 (999) 123-45-67">
                 </div>
 
                 <div class="payment-methods">
@@ -273,12 +297,13 @@
                 </div>
 
                 <button type="submit" class="pay-button" id="pay-button">
-                    Перейти к оплате
+                    🔄 Тестовый платеж
                 </button>
             </form>
 
             <div style="text-align: center; margin-top: 20px; color: #666;">
-                <p>🔒 Безопасные платежи через <strong>Kassa.ai</strong></p>
+                <p>🔒 Для настройки реальных платежей укажите в Kassa.ai:</p>
+                <p><strong>Callback URL:</strong> <code id="callback-url">https://your-app.onrender.com/api/payment-callback</code></p>
             </div>
         </div>
     </div>
@@ -287,6 +312,10 @@
         const paymentForm = document.getElementById('payment-form');
         const payButton = document.getElementById('pay-button');
         const messageContainer = document.getElementById('message-container');
+        const callbackUrlElement = document.getElementById('callback-url');
+
+        // Обновляем callback URL
+        callbackUrlElement.textContent = window.location.origin + '/api/payment-callback';
 
         // Генератор ID заказа
         function generateOrderId() {
@@ -295,8 +324,10 @@
 
         // Показать сообщение
         function showMessage(message, type = 'error') {
+            const className = type === 'error' ? 'error-message' : 
+                            type === 'success' ? 'success-message' : 'info-message';
             messageContainer.innerHTML = `
-                <div class="${type === 'error' ? 'error-message' : 'success-message'}">
+                <div class="${className}">
                     ${message}
                 </div>
             `;
@@ -307,7 +338,7 @@
             e.preventDefault();
             
             // Показываем загрузку
-            payButton.innerHTML = '🔄 Создание платежа...';
+            payButton.innerHTML = '🔄 Создание тестового платежа...';
             payButton.disabled = true;
             paymentForm.classList.add('loading');
             messageContainer.innerHTML = '';
@@ -320,8 +351,10 @@
                     paymentMethod: document.querySelector('input[name="paymentMethod"]:checked').value,
                     amount: 1990,
                     orderId: generateOrderId(),
-                    description: 'Оплата заказа в интернет-магазине'
+                    description: 'Тестовый платеж в демо-режиме'
                 };
+
+                console.log('📤 Отправка данных:', formData);
 
                 // Отправляем запрос на сервер
                 const response = await fetch('/api/create-payment', {
@@ -335,9 +368,18 @@
                 const result = await response.json();
 
                 if (result.success) {
-                    console.log('✅ Платеж создан, перенаправление:', result.paymentUrl);
-                    // Перенаправляем на страницу оплаты Kassa.ai
-                    window.location.href = result.paymentUrl;
+                    console.log('✅ Ответ сервера:', result);
+                    
+                    if (result.demo) {
+                        showMessage('✅ Демо-платеж создан! Перенаправление...', 'success');
+                        // Перенаправляем на страницу успеха для демо
+                        setTimeout(() => {
+                            window.location.href = result.paymentUrl;
+                        }, 1000);
+                    } else {
+                        // Реальный платеж - перенаправляем на Kassa.ai
+                        window.location.href = result.paymentUrl;
+                    }
                 } else {
                     throw new Error(result.error || 'Неизвестная ошибка');
                 }
@@ -347,7 +389,7 @@
                 showMessage(`Ошибка при создании платежа: ${error.message}`);
             } finally {
                 // Восстанавливаем кнопку
-                payButton.innerHTML = 'Перейти к оплате';
+                payButton.innerHTML = '🔄 Тестовый платеж';
                 payButton.disabled = false;
                 paymentForm.classList.remove('loading');
             }
@@ -376,6 +418,9 @@
             
             e.target.value = formattedValue;
         });
+
+        // Автозаполнение для демо
+        console.log('🎮 Демо-приложение готово к тестированию');
     </script>
 </body>
 </html>
