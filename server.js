@@ -13,18 +13,14 @@ app.use(express.urlencoded({ extended: true }));
 
 // Конфигурация Kassa.ai из env переменных
 const KASSA_CONFIG = {
-    merchantId: process.env.KASSA_MERCHANT_ID,
-    secretKey: process.env.KASSA_SECRET_KEY,
+    merchantId: process.env.KASSA_MERCHANT_ID || 'demo_merchant_id',
+    secretKey: process.env.KASSA_SECRET_KEY || 'demo_secret_key',
     baseUrl: process.env.KASSA_BASE_URL || 'https://payment.kassa.ai'
 };
 
-// Валидация конфигурации
-if (!KASSA_CONFIG.merchantId || !KASSA_CONFIG.secretKey) {
-    console.error('❌ Ошибка: KASSA_MERCHANT_ID и KASSA_SECRET_KEY должны быть установлены в .env файле');
-    process.exit(1);
-}
-
-console.log('✅ Конфигурация Kassa.ai загружена');
+console.log('🚀 Сервер запускается...');
+console.log('📍 Режим:', process.env.KASSA_MERCHANT_ID ? 'PRODUCTION' : 'DEMO');
+console.log('👨‍💻 Мерчант:', KASSA_CONFIG.merchantId);
 
 // Роут для главной страницы
 app.get('/', (req, res) => {
@@ -44,7 +40,22 @@ app.post('/api/create-payment', async (req, res) => {
             });
         }
 
-        // Подготовка данных для Kassa.ai
+        // Демо-режим - возвращаем заглушку
+        if (KASSA_CONFIG.merchantId === 'demo_merchant_id') {
+            console.log('🎮 Демо-режим: симуляция платежа для заказа', orderId);
+            
+            // Имитируем задержку API
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            return res.json({
+                success: true,
+                paymentUrl: `/success?order_id=${orderId}&demo=true`,
+                paymentId: 'demo_payment_' + Date.now(),
+                demo: true
+            });
+        }
+
+        // Реальный режим - работа с Kassa.ai
         const paymentData = {
             merchant_id: KASSA_CONFIG.merchantId,
             amount: Math.round(amount * 100), // Конвертируем в копейки
@@ -79,7 +90,7 @@ app.post('/api/create-payment', async (req, res) => {
         
         paymentData.sign = signature;
 
-        console.log('📦 Создание платежа:', { orderId, amount, email });
+        console.log('📦 Создание реального платежа:', { orderId, amount, email });
 
         // Отправка запроса к Kassa.ai
         const response = await fetch(`${KASSA_CONFIG.baseUrl}/api/v1/payments`, {
@@ -127,23 +138,25 @@ app.post('/api/payment-callback', (req, res) => {
             paymentId: callbackData.payment_id
         });
 
-        // Верификация подписи
-        const sign = callbackData.sign;
-        delete callbackData.sign;
+        // В реальном режиме проверяем подпись
+        if (KASSA_CONFIG.merchantId !== 'demo_merchant_id') {
+            const sign = callbackData.sign;
+            delete callbackData.sign;
 
-        const signString = Object.keys(callbackData)
-            .sort()
-            .map(key => `${key}=${callbackData[key]}`)
-            .join('&');
+            const signString = Object.keys(callbackData)
+                .sort()
+                .map(key => `${key}=${callbackData[key]}`)
+                .join('&');
 
-        const expectedSign = crypto
-            .createHmac('sha256', KASSA_CONFIG.secretKey)
-            .update(signString)
-            .digest('hex');
+            const expectedSign = crypto
+                .createHmac('sha256', KASSA_CONFIG.secretKey)
+                .update(signString)
+                .digest('hex');
 
-        if (sign !== expectedSign) {
-            console.error('❌ Неверная подпись в callback');
-            return res.status(400).send('Invalid signature');
+            if (sign !== expectedSign) {
+                console.error('❌ Неверная подпись в callback');
+                return res.status(400).send('Invalid signature');
+            }
         }
 
         // Обработка статуса платежа
@@ -177,6 +190,11 @@ app.get('/fail', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'fail.html'));
 });
 
+// Health check для Render
+app.get('/health', (req, res) => {
+    res.json({ status: 'OK', timestamp: new Date().toISOString() });
+});
+
 // Получение базового URL
 function getBaseUrl(req) {
     return process.env.BASE_URL || `${req.protocol}://${req.get('host')}`;
@@ -186,5 +204,6 @@ function getBaseUrl(req) {
 app.listen(PORT, () => {
     console.log(`🚀 Сервер запущен на порту ${PORT}`);
     console.log(`📍 База URL: ${process.env.BASE_URL || `http://localhost:${PORT}`}`);
-    console.log(`👨‍💻 Мерчант: ${KASSA_CONFIG.merchantId}`);
+    console.log('💡 Режим:', KASSA_CONFIG.merchantId === 'demo_merchant_id' ? 'DEMO - можно настроить Kassa.ai' : 'PRODUCTION');
+    console.log('📝 Для настройки Kassa.ai укажите в callback URL:', `${getBaseUrl({ protocol: 'https', get: () => 'your-app.onrender.com' })}/api/payment-callback`);
 });
