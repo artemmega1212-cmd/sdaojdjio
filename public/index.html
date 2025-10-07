@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Магазин - Оформление заказа</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .order-summary {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .product-item {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .product-item img {
+            width: 80px;
+            height: 80px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+
+        .product-info h3 {
+            margin-bottom: 5px;
+        }
+
+        .price {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #e74c3c;
+        }
+
+        .order-total {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px solid #ddd;
+        }
+
+        .total-line {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .total-line.final {
+            font-weight: bold;
+            font-size: 1.2em;
+            border-top: 1px solid #ccc;
+            padding-top: 10px;
+            margin-top: 10px;
+        }
+
+        .final-price {
+            color: #27ae60;
+        }
+
+        .payment-form {
+            margin-top: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .payment-methods {
+            margin: 25px 0;
+        }
+
+        .methods-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .method-option input {
+            display: none;
+        }
+
+        .method-card {
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .method-option input:checked + .method-card {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .pay-button {
+            width: 100%;
+            padding: 15px;
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .pay-button:hover:not(:disabled) {
+            background: #219a52;
+        }
+
+        .pay-button:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            opacity: 0.7;
+        }
+
+        .error-message {
+            background: #e74c3c;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            text-align: center;
+        }
+
+        .success-message {
+            background: #27ae60;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            text-align: center;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            
+            .methods-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🛍️ Интернет-магазин</h1>
+            <p>Безопасные платежи через Kassa.ai</p>
+        </header>
+
+        <div class="order-summary">
+            <h2>Ваш заказ</h2>
+            <div class="product-item">
+                <img src="https://via.placeholder.com/80/667eea/ffffff?text=Product" alt="Товар">
+                <div class="product-info">
+                    <h3>Премиум товар</h3>
+                    <p>Высокое качество с гарантией 1 год</p>
+                    <span class="price">1 990 ₽</span>
+                </div>
+            </div>
+            
+            <div class="order-total">
+                <div class="total-line">
+                    <span>Стоимость товара:</span>
+                    <span>1 990 ₽</span>
+                </div>
+                <div class="total-line">
+                    <span>Доставка:</span>
+                    <span>бесплатно</span>
+                </div>
+                <div class="total-line final">
+                    <span>Итого к оплате:</span>
+                    <span class="final-price">1 990 ₽</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="payment-section">
+            <h2>Оплата заказа</h2>
+            
+            <form id="payment-form" class="payment-form">
+                <div id="message-container"></div>
+
+                <div class="form-group">
+                    <label for="email">Email для уведомлений:</label>
+                    <input type="email" id="email" name="email" required placeholder="your@email.com">
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">Телефон:</label>
+                    <input type="tel" id="phone" name="phone" required placeholder="+7 (999) 999-99-99">
+                </div>
+
+                <div class="payment-methods">
+                    <h3>Способы оплаты:</h3>
+                    <div class="methods-grid">
+                        <label class="method-option">
+                            <input type="radio" name="paymentMethod" value="card" checked>
+                            <div class="method-card">
+                                <span>💳 Банковская карта</span>
+                            </div>
+                        </label>
+                        <label class="method-option">
+                            <input type="radio" name="paymentMethod" value="sbp">
+                            <div class="method-card">
+                                <span>📱 СБП</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <button type="submit" class="pay-button" id="pay-button">
+                    Перейти к оплате
+                </button>
+            </form>
+
+            <div style="text-align: center; margin-top: 20px; color: #666;">
+                <p>🔒 Безопасные платежи через <strong>Kassa.ai</strong></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const paymentForm = document.getElementById('payment-form');
+        const payButton = document.getElementById('pay-button');
+        const messageContainer = document.getElementById('message-container');
+
+        // Генератор ID заказа
+        function generateOrderId() {
+            return 'ORDER_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        }
+
+        // Показать сообщение
+        function showMessage(message, type = 'error') {
+            messageContainer.innerHTML = `
+                <div class="${type === 'error' ? 'error-message' : 'success-message'}">
+                    ${message}
+                </div>
+            `;
+        }
+
+        // Обработчик отправки формы
+        paymentForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Показываем загрузку
+            payButton.innerHTML = '🔄 Создание платежа...';
+            payButton.disabled = true;
+            paymentForm.classList.add('loading');
+            messageContainer.innerHTML = '';
+
+            try {
+                // Собираем данные формы
+                const formData = {
+                    email: document.getElementById('email').value,
+                    phone: document.getElementById('phone').value,
+                    paymentMethod: document.querySelector('input[name="paymentMethod"]:checked').value,
+                    amount: 1990,
+                    orderId: generateOrderId(),
+                    description: 'Оплата заказа в интернет-магазине'
+                };
+
+                // Отправляем запрос на сервер
+                const response = await fetch('/api/create-payment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    console.log('✅ Платеж создан, перенаправление:', result.paymentUrl);
+                    // Перенаправляем на страницу оплаты Kassa.ai
+                    window.location.href = result.paymentUrl;
+                } else {
+                    throw new Error(result.error || 'Неизвестная ошибка');
+                }
+                
+            } catch (error) {
+                console.error('❌ Ошибка:', error);
+                showMessage(`Ошибка при создании платежа: ${error.message}`);
+            } finally {
+                // Восстанавливаем кнопку
+                payButton.innerHTML = 'Перейти к оплате';
+                payButton.disabled = false;
+                paymentForm.classList.remove('loading');
+            }
+        });
+
+        // Валидация телефона
+        document.getElementById('phone').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.startsWith('7') || value.startsWith('8')) {
+                value = value.substring(1);
+            }
+            
+            let formattedValue = '+7 ';
+            if (value.length > 0) {
+                formattedValue += '(' + value.substring(0, 3);
+            }
+            if (value.length > 3) {
+                formattedValue += ') ' + value.substring(3, 6);
+            }
+            if (value.length > 6) {
+                formattedValue += '-' + value.substring(6, 8);
+            }
+            if (value.length > 8) {
+                formattedValue += '-' + value.substring(8, 10);
+            }
+            
+            e.target.value = formattedValue;
+        });
+    </script>
+</body>
+</html>
